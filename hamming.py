@@ -166,28 +166,49 @@ class BitMatrix:
                     newrow[l-1] = 1
             rowsH.append(newrow)
             
-        """
+        # Calculating the entries for the Generator matrix G:    
         entriesG = []
-        
         currentParityBit = 0
         currentDataBit = 0
         for k in range(1,totalLength+1):
-            #add the k-th row to entriesG
-            
+            #add the k-th row to entriesG:
             if (k & (k - 1)) == 0:  #if k is a power of 2,
+                newrow = []
                 currentParityBit += 1
                 #add the currentParityBit-th row of rowsH, but remove all "power of 2" entries
+                for index in range(1,totalLength+1):
+                    if (index & (index - 1)) != 0:
+                        newrow.append(rowsH[currentParityBit-1][index-1])
             else: #if k is NOT a power of 2,
                 currentDataBit += 1
+                newrow = n*[0]
                 #add the currentDataBit-th row of the nxn Identity Matrix
-        """    
-            
+                newrow[currentDataBit-1] = 1
+             
+            entriesG += newrow
             
             
         entriesH = [val for sublist in rowsH for val in sublist]
-        return BitMatrix(entriesH,totalLength)
+        return (BitMatrix(entriesG,n),BitMatrix(entriesH,totalLength))
         
         
+        
+    @staticmethod
+    def correct(dataToCorrect,syndromeVector):    
+        if all(i == 0 for i in syndromeVector.entries):
+            return dataToCorrect #if syndrome vector is zero, no correction is needed!
+        
+        #syndromeVector.entries is a list of the form [1,0,1,1]
+        #read FROM LEFT TO RIGHT to get a bit position to change: above is 1101 = 13 in binary
+        #then flip the sign of that position in dataToCorrect.entries, return new vector
+        wrongIndexBin = ''
+        for k in reversed(syndromeVector.entries):
+            wrongIndexBin += str(k)
+        wrongIndex = int(wrongIndexBin,2) -1 #convert binary to int index
+        correctedData = dataToCorrect.entries.copy()
+        correctedData[wrongIndex] = (correctedData[wrongIndex] +1)%2
+        
+        return BitMatrix(correctedData,1)
         
         
         
@@ -198,12 +219,7 @@ class BitMatrix:
             return True
         else: 
             return False      
-    
-    @staticmethod
-    def eye(n):
-        #create identity matrix - is this needed?
-        pass
-    
+        
     
 
 
