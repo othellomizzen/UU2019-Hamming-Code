@@ -144,6 +144,61 @@ class BitMatrix:
                    0,0,0,1,1,1,1]
         return BitMatrix(entries,7)
     
+    def Generator(n):
+        #n = amount of data bits (4 for Hamming(7,4))        
+        # calculate the new total length (+parity bits) we need:
+        i = 0
+        tempLength = n
+        while tempLength > 0:
+            i += 1
+            if (i & (i - 1)) != 0:  #if i is NOT a power of 2
+                tempLength -= 1
+        
+        totalLength = i
+        parityLength = totalLength - n
+        
+        # Calculating the entries for ParityCheck matrix H:
+        rowsH = []
+        for k in range(1,parityLength+1):
+            newrow = totalLength*[0]
+            for l in range(1,totalLength+1):
+                if BitMatrix.isKthBitSet(l,k):
+                    newrow[l-1] = 1
+            rowsH.append(newrow)
+            
+        """
+        entriesG = []
+        
+        currentParityBit = 0
+        currentDataBit = 0
+        for k in range(1,totalLength+1):
+            #add the k-th row to entriesG
+            
+            if (k & (k - 1)) == 0:  #if k is a power of 2,
+                currentParityBit += 1
+                #add the currentParityBit-th row of rowsH, but remove all "power of 2" entries
+            else: #if k is NOT a power of 2,
+                currentDataBit += 1
+                #add the currentDataBit-th row of the nxn Identity Matrix
+        """    
+            
+            
+            
+        entriesH = [val for sublist in rowsH for val in sublist]
+        return BitMatrix(entriesH,totalLength)
+        
+        
+        
+        
+        
+    @staticmethod
+    def isKthBitSet(n, k): 
+        #specific code taken from https://www.geeksforgeeks.org/check-whether-k-th-bit-set-not/
+        if n & (1 << (k - 1)): 
+            return True
+        else: 
+            return False      
+    
     @staticmethod
     def eye(n):
         #create identity matrix - is this needed?
