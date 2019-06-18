@@ -20,12 +20,14 @@ class BitMatrix:
     """
     
     
-    def __init__(self,entries,m):
+    def __init__(self,entries,m,mode="Binary"):
         self.m = m
         self.n = len(entries)//m
         #store all entries in both row and column form, for easier access later
-        self.entries = entries  #use this line for "non-binary Matrices" mode
-        #self.entries = BitMatrix.mod2(entries) #this is the only line of code that makes it binary!
+        if mode=="Binary":
+            self.entries = BitMatrix.mod2(entries)
+        elif mode=="NonBinary":
+            self.entries = entries
         self.rows,self.columns = BitMatrix.calculateRowsColumns(self.entries,m)   
     
     def __str__(self):
@@ -140,12 +142,13 @@ class BitMatrix:
         entries = [1,0,1,0,1,0,1,
                    0,1,1,0,0,1,1,
                    0,0,0,1,1,1,1]
-        return BitMatrix(entries,4)
+        return BitMatrix(entries,7)
     
     @staticmethod
     def eye(n):
         #create identity matrix - is this needed?
         pass
+    
     
 
 
