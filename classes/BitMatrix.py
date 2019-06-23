@@ -24,6 +24,7 @@ class BitMatrix:
         self.m = m
         self.n = len(entries)//m
         #store all entries in both row and column form, for easier access later
+        #useful for the matrix multiplication formula
         if mode=="Binary":
             self.entries = BitMatrix.mod2(entries)
         elif mode=="NonBinary":
@@ -106,10 +107,11 @@ class BitMatrix:
         return [entries[i]%2 for i in range(0,len(entries))]
     
     
-    
-    # The following group of methods is not used to work with the matrices directly,
-    # but rather the Hamming code-related calculations and declarations.
-    # These could potentially be moved to a different file
+    """
+    The following group of methods is not used to work with the matrices directly,
+    but rather the Hamming code-related calculations and declarations.
+    These could potentially be moved to the main.py file
+    """
     
     @staticmethod
     def ParityMatrices():
