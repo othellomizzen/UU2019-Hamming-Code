@@ -11,8 +11,8 @@ random.seed(datetime.now())
 
 """
 This program shall have two modes; the user inputs a string, and either:
-    - flip one of the bits of the raw data and display the corrupted data back as a text string,
-        followed by using Hamming(7,4) to correct the corrupted message, or;
+    - flip a random amount of bits of the raw data and display the corrupted data back as
+        a text string, followed by using Hamming(7,4) to correct the corrupted message, or;
     - use a general Hamming code and corrupt->correct without displaying the wrong data as text.
 The reason for this is that I cannot think of a meaningful way to convert corrupted data back
 to text when not storing it as nibbles and using Hamming(7,4)
@@ -25,113 +25,103 @@ data would translate back into as text.
 
 
 
-# The following functions convert between text<->nibble and flip bits
-
-def StringToNibbleList(message):
-    wholeBinaryString = ''.join(format(ord(x), 'b').zfill(8) for x in message)    
-    nibbleList = []
-    for i in range(0,len(message)*2):
-        nibbleList.append([int(bit) for bit in wholeBinaryString[i*4:(i+1)*4]])
-    return nibbleList
-
-def NibbleListToString(nibbleList):
-    byteList = []
-    for i in range(0,len(nibbleList)//2):
-        #add two nibbles to make a byte, then store as string
-        newByte = ''.join([str(k) for k in nibbleList[i*2]+nibbleList[i*2 +1]])
-        byteList.append(newByte)
-    return ''.join(chr(int(i,2)) for i in byteList)
-
-
-def flipRandomBit(bitList):
-    #note: randint generates numbers up to AND INCLUDING the upper bound
-    #bitList is a list containing lists with the grouped bits:
-    #can be both raw data (such is nibbles) and already encoded (such as Hamming(7,4))
-    groupRandom = random.randint(0,len(bitList)-1)
-    bitRandom = random.randint(0,len(bitList[0])-1)
+def flipRandomBits(bitList,n):
+    #note: randint and sample generates numbers up to AND INCLUDING the upper bound
+    #bitList is a list containing lists with the grouped bits:    
+    howManyRandom = random.randint(1,len(bitList)-1)
+    groupRandom = random.sample(range(0,len(bitList)),howManyRandom)
+    bitRandom = []
+    for i in range(0,howManyRandom):
+        if n==4:
+            bitRandom.append(random.choice([2,4,5,6]))
+        else:
+            bitRandom.append(random.randint(0,len(bitList[0])-1))   
     flippedList = copy.deepcopy(bitList)
-    flippedList[groupRandom][bitRandom] = (flippedList[groupRandom][bitRandom]+1)%2
-    return flippedList
+    for i in range(0,howManyRandom):
+        flippedList[groupRandom[i]][bitRandom[i]] = (flippedList[groupRandom[i]][bitRandom[i]]+1)%2
+    return flippedList,howManyRandom
 
 
+def StringToBitList(message,n):
+    # converts text message to a list of lists containing the binary conversion,
+    # grouped into sublists of length n, to use for Hamming(...,n) codes
+    wholeBinaryString = ''.join(format(ord(x), 'b').zfill(8) for x in message)    
+    bitList = []
+    amountExtrabits = len(wholeBinaryString)%n
+    # when the groups do not divide evenly, add a number of 0s to the first group
+    if amountExtrabits != 0:
+        newrow = (n-amountExtrabits)*[0]
+        newrow += [int(i) for i in wholeBinaryString[0:amountExtrabits]]
+        bitList.append(newrow)
+    for k in range(0,len(wholeBinaryString)//n):
+        bitList.append([int(i) for i in wholeBinaryString[amountExtrabits+ k*n:amountExtrabits+ (k+1)*n]])
+    return bitList
 
 
-
-
-"""
-def encodeMessage74(message):
-    nibbleList = StringToNibbleList(message)
-    G,H = BitMatrix.Generator(4)
-    encodedList = []
-    for nibble in nibbleList:
-        nibbleEntries = [int(i) for i in nibble]
-        nibbleVector = BitMatrix(nibbleEntries,1)
-        product = G*nibbleVector
-        encodedList.append(product.entries)
-    return encodedList
-
-
-def correctMessage74(encoded):
-    G,H = BitMatrix.Generator(4)
-    for group in encoded:
-        groupVector = BitMatrix(group,1)
-        product = H*groupVector
-        if sum(product.entries) > 0:
-            pass #FINISH
+def EncodedBitListToString(bitList,n):
+    #convert a bitlist back to string
+    wholeBinaryString = ''
+    #add every bit minus the parity ones to a string:
+    for group in bitList:
+        for i in range(1,len(group)+1):
+            if (i & (i - 1)) != 0:  #if i not a power of two, it is not a parity bit:
+                wholeBinaryString += str(group[i-1])
+    #now remove the added 0-bits from Stringtobitlist
+    amountExtrabits = (n*len(bitList))%8
+    if amountExtrabits != 0:
+        wholeBinaryString = wholeBinaryString[amountExtrabits:]
+    #now group by byte:
+    byteList = []
+    for i in range(0,len(wholeBinaryString)//8):
+        byteList.append(wholeBinaryString[i*8:(i+1)*8])  
             
-"""
-
-
+    return ''.join(chr(int(i,2)) for i in byteList)
 
 
 
 
 def runHammingGeneral(message,n):
-    # G,H = BitMatrix.Generator(n)
-    # bitList = StringToBitList(message,n) -> convert each letter to a byte, groups bits by n
-                ## uneven divisions like: n=5, '011 11010'
-                ## add 0's AT THE FRONT: -> '00011 11010'
-    # if n==4:
-        # corruptedBitList = flipRandomBit(bitList)
-        # print("Message with one random incorrect bit: ")
-        # print(BitListToString(corruptedBitList) ,'\n')
-        # dataToEncode = corruptedBitList
-    # else:
-        # dataToEncode = bitList
+    G,H = BitMatrix.Generator(n)
+    dataToEncode = StringToBitList(message,n) #-> convert each letter to a byte, groups bits by n
+            # uneven divisions like: n=5, '011 11010'
+            # add 0's AT THE FRONT: -> '00011 11010'
         
-    ## encode:
-    #encodedList = []
-    #for bitgroup in dataToEncode:
-        #bitgroupEntries = [int(i) for i in group]
-        #bitgroupVector = BitMatrix(bitgroupEntries,1)
-        #product = G*bitgroupVector
-        #encodedList.append(product.entries)
-    #return encodedList
+    #encode:
+    encodedList = []
+    for bitgroup in dataToEncode:
+        bitgroupEntries = [int(i) for i in bitgroup]
+        bitgroupVector = BitMatrix(bitgroupEntries,1)
+        product = G*bitgroupVector
+        encodedList.append(product.entries)
     
-    # if n== 4:
-        # wrongdata = encodedList
-    # else:
-        # wrongdata = flipRandomBit(encodedList)
+    wrongdata,howManyRandom = flipRandomBits(encodedList,n)
+    print(howManyRandom, "bits were corrupted.")
+    if n== 4:
+        print("Message after being corrupted: ")
+        print(EncodedBitListToString(wrongdata,n) ,'\n')
+            
+    # go through all groups and correct the wrong ones:
+    correctedList = []
+    for group in wrongdata:
+        bitgroupVector = BitMatrix(group,1)
+        syndromeVector = H*bitgroupVector
+        correctedVector = BitMatrix.correct(bitgroupVector,syndromeVector)
+        correctedList.append(correctedVector.entries)
         
-    ## go through all groups and correct the wrong ones:
-    # correctedList = []
-    # for group in encoded:
-        # bitgroupVector = BitMatrix(group,1)
-        # syndromeVector = H*bitgroupVector
-        # correctedVector = BitMatrix.correct(bitgroupVector,syndromeVector)
-        # correctedList.append(correctedVector.entries)
-        
-    # output = BitListToString(correctedList,n)
-            ## convert back to a string, start counting from behind to remove zeros added before
-    # print(output)
+    output = EncodedBitListToString(correctedList,n)
+            # convert back to a string, also remove added 0s from StringToBitList
+            
+    # calculate how much time this whole damn thing took - put "toc" here? Look it up        
     
+    print('Message after being corrupted and corrected: ')
+    print(output, '\n')
     
-    pass
 
 
 
 
 """ ---------- RUNTIME ---------- """
+
 
 
 print("This program takes a user-provided string, changes a random bit in the input, "
@@ -150,7 +140,9 @@ while running:
     else:
         print("Input your message: ")
         message = input()
+        start = datetime.now()
         runHammingGeneral(message,n)
+        print('Time elapsed:', datetime.now() - start)
         print("Do you wish to try another string? Input Y to go again, " 
               "input anything else to quit: ")
         replay = input()
