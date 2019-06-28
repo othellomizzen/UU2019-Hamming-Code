@@ -142,7 +142,8 @@ while running:
         message = input()
         start = datetime.now()
         runHammingGeneral(message,n)
-        print('Time elapsed:', datetime.now() - start)
+        timedelta = datetime.now() - start
+        print('Time elapsed:', timedelta.total_seconds()*1000,'milliseconds.')
         print("Do you wish to try another string? Input Y to go again, " 
               "input anything else to quit: ")
         replay = input()
