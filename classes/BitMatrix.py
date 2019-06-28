@@ -24,6 +24,7 @@ class BitMatrix:
         self.m = m
         self.n = len(entries)//m
         #store all entries in both row and column form, for easier access later
+        #useful for the matrix multiplication formula
         if mode=="Binary":
             self.entries = BitMatrix.mod2(entries)
         elif mode=="NonBinary":
@@ -99,53 +100,35 @@ class BitMatrix:
         for i in range(0,m):
             columns.append([entries[i+m*j] for j in range(0,n)])
         return rows,columns
-    
-    @staticmethod
-    def calculateEntries(rows):
-        #when updating matrix via ROWS format, use this to calculate entries(/columns?) format
-        entries = []
-        for sublist in rows:
-            for item in sublist:
-                entries.append(item)
-        return entries
 
     @staticmethod
     def mod2(entries):
         #changes all matrix entries to be modulo 2, to work in binary
         return [entries[i]%2 for i in range(0,len(entries))]
     
+    
+    """
+    The following group of methods is not used to work with the matrices directly,
+    but rather the Hamming code-related calculations and declarations.
+    These could potentially be moved to the main.py file
+    """
+    
     @staticmethod
-    def ParityMatrix():
+    def ParityMatrices():
         #this creates a 5x4 parity matrix G to multiply with a nibble x; adds a parity to x
-        entries = [1,0,0,0,
+        #also creates a 1x5 matrix H to check for (an odd amount of) errors, Hy=H(Gx) should be 0
+        entriesG = [1,0,0,0,
                    0,1,0,0,
                    0,0,1,0,
                    0,0,0,1,
                    1,1,1,1]
-        return BitMatrix(entries,4)
-    
-    @staticmethod
-    def Generator74():
-        #this creates a Hamming code generator G for Hamming(7,4)
-        entries = [1,1,0,1,
-                   1,0,1,1,
-                   1,0,0,0,
-                   0,1,1,1,
-                   0,1,0,0,
-                   0,0,1,0,
-                   0,0,0,1]
-        return BitMatrix(entries,4)
-    
-    @staticmethod
-    def ParityCheck74():
-        #this creates a Hamming parity check matrix H for Hamming(7,4)
-        entries = [1,0,1,0,1,0,1,
-                   0,1,1,0,0,1,1,
-                   0,0,0,1,1,1,1]
-        return BitMatrix(entries,7)
-    
+        entriesH = [1,1,1,1,1]
+        return (BitMatrix(entriesG,4),BitMatrix(entriesH,5))
+        
     def Generator(n):
-        #n = amount of data bits (4 for Hamming(7,4))        
+        #Generates the generator and parity check matrices G and H 
+        #n = amount of data bits (4 for Hamming(7,4))     
+        
         # calculate the new total length (+parity bits) we need:
         i = 0
         tempLength = n
@@ -191,8 +174,6 @@ class BitMatrix:
         entriesH = [val for sublist in rowsH for val in sublist]
         return (BitMatrix(entriesG,n),BitMatrix(entriesH,totalLength))
         
-        
-        
     @staticmethod
     def correct(dataToCorrect,syndromeVector):    
         if all(i == 0 for i in syndromeVector.entries):
@@ -210,8 +191,6 @@ class BitMatrix:
         
         return BitMatrix(correctedData,1)
         
-        
-        
     @staticmethod
     def isKthBitSet(n, k): 
         #specific code taken from https://www.geeksforgeeks.org/check-whether-k-th-bit-set-not/
@@ -223,5 +202,45 @@ class BitMatrix:
     
 
 
-
+    """
+    Deprecated methods:
+    
+        
+    @staticmethod
+    def Generator74():
+        #this creates a Hamming code generator G for Hamming(7,4)
+        entries = [1,1,0,1,
+                   1,0,1,1,
+                   1,0,0,0,
+                   0,1,1,1,
+                   0,1,0,0,
+                   0,0,1,0,
+                   0,0,0,1]
+        return BitMatrix(entries,4)
+    
+    @staticmethod
+    def ParityCheck74():
+        #this creates a Hamming parity check matrix H for Hamming(7,4)
+        entries = [1,0,1,0,1,0,1,
+                   0,1,1,0,0,1,1,
+                   0,0,0,1,1,1,1]
+        return BitMatrix(entries,7)
+    
+    @staticmethod
+    def calculateEntries(rows):
+        #when updating matrix via ROWS format, use this to calculate entries(/columns?) format
+        entries = []
+        for sublist in rows:
+            for item in sublist:
+                entries.append(item)
+        return entries    
+    
+    
+    
+    
+    
+    
+    
+    
+    """
 
