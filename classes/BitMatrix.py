@@ -2,33 +2,26 @@
 # Created on Thu Jun  6 15:35:16 2019
 # author: Cassio da Silva Rodrigues, stundentnummer 5593565
 
-"""
-notation for binary numbers: 0b(X)  where (X) is the binary representation
-0b101 + 0b001 = 6
-bin(0b101 + 0b001) = '0b101'
-int('101',2) + int('001',2) = 6
-
-
-
-"""
 
 class BitMatrix:
-    """
-    definition for an nxm matrix, n rows and m columns
+    """ definition for an nxm matrix, n rows and m columns
     initialisation takes a list with all elements in row order: row1+row2+...
         and the amount of columns (row length)
-    """
-    
+    Used mainly for matrix-vector multiplication in main.py, but it can also
+    be used just by itself if one wishes to perform matrix operations/Hamming
+    code tests outside of the runtime loop in main.py """    
     
     def __init__(self,entries,m,mode="Binary"):
         self.m = m
         self.n = len(entries)//m
-        #store all entries in both row and column form, for easier access later
-        #useful for the matrix multiplication formula
         if mode=="Binary":
             self.entries = BitMatrix.mod2(entries)
         elif mode=="NonBinary":
+            #this non-binary mode can be used to work with general matrices,
+            #outside of the scope of the Hamming code
             self.entries = entries
+        #store all entries in both row and column form, for easier access later
+        #useful for the matrix multiplication formula
         self.rows,self.columns = BitMatrix.calculateRowsColumns(self.entries,m)   
     
     def __str__(self):
@@ -58,7 +51,6 @@ class BitMatrix:
     
     
     
-    
     @staticmethod
     def linearCombination(a,X,b=None,Y=None):
         #this calculates aX+bY for X,Y matrices, so no matrix multiplication 
@@ -78,7 +70,7 @@ class BitMatrix:
     
     @staticmethod
     def matrixMultiplication(A,B):
-        #this calculates X*Y (with * being dot product), not Y*X
+        #this calculates A*B (with * being dot product), not B*A
         #note, for very large matrices, Strassen or other Fast Matrix algorithms might be better
         resultentries = []
         for i in range(0,A.n):
@@ -107,11 +99,8 @@ class BitMatrix:
         return [entries[i]%2 for i in range(0,len(entries))]
     
     
-    """
-    The following group of methods is not used to work with the matrices directly,
-    but rather the Hamming code-related calculations and declarations.
-    These could potentially be moved to the main.py file
-    """
+    """ The following group of methods is not used to work with the matrices 
+    directly, but rather the Hamming code-related calculations and declarations. """
     
     @staticmethod
     def ParityMatrices():
@@ -126,7 +115,7 @@ class BitMatrix:
         return (BitMatrix(entriesG,4),BitMatrix(entriesH,5))
         
     def Generator(n):
-        #Generates the generator and parity check matrices G and H 
+        #Creates the generator and parity check matrices G and H 
         #n = amount of data bits (4 for Hamming(7,4))     
         
         # calculate the new total length (+parity bits) we need:
@@ -199,48 +188,3 @@ class BitMatrix:
         else: 
             return False      
         
-    
-
-
-    """
-    Deprecated methods:
-    
-        
-    @staticmethod
-    def Generator74():
-        #this creates a Hamming code generator G for Hamming(7,4)
-        entries = [1,1,0,1,
-                   1,0,1,1,
-                   1,0,0,0,
-                   0,1,1,1,
-                   0,1,0,0,
-                   0,0,1,0,
-                   0,0,0,1]
-        return BitMatrix(entries,4)
-    
-    @staticmethod
-    def ParityCheck74():
-        #this creates a Hamming parity check matrix H for Hamming(7,4)
-        entries = [1,0,1,0,1,0,1,
-                   0,1,1,0,0,1,1,
-                   0,0,0,1,1,1,1]
-        return BitMatrix(entries,7)
-    
-    @staticmethod
-    def calculateEntries(rows):
-        #when updating matrix via ROWS format, use this to calculate entries(/columns?) format
-        entries = []
-        for sublist in rows:
-            for item in sublist:
-                entries.append(item)
-        return entries    
-    
-    
-    
-    
-    
-    
-    
-    
-    """
-
