@@ -124,7 +124,7 @@ def runHammingGeneral(message,n,mode=None):
 
 """ ---------- RUNTIME ---------- """
 
-print("This program takes a user-provided string, changes a random bit in the input, "
+print("This program takes a user-provided string, changes random bits in the input, "
       "then corrects it using Hamming codes. \n")
 running = True
 while running:
